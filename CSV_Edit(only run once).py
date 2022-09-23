@@ -58,9 +58,9 @@ def tier_list(df, points):
             distance = find_distance(location_coord, point_coord)
             if distance <= 30:
                 tier_arr[0] += 1
-            elif distance <= 90:
+            elif distance <= 60:
                 tier_arr[1] += 1
-            elif distance <= 150:
+            elif distance <= 90:
                 tier_arr[2] += 1
         tiers = np.append(tiers, tier_arr)
     tiers = np.reshape(tiers, (df_size, 3))
