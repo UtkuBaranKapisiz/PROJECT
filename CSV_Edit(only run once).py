@@ -4,13 +4,15 @@ import geopy as gpy
 
 
 def find_distance(x, y):
-    return ((x[0] - y[0])**2 + (x[1] - y[1])**2)**0.5
+    return 111*((x[0] - y[0])**2 + (x[1] - y[1])**2)**0.5
 
 
-main = pd.read_csv("earthquake.csv")
+main = pd.read_csv("old_earthquake.csv")
+# lenght of df
+df_size = len(main.index)
 
 df = pd.DataFrame({
-    "id": (i for i in range(1, 24008)),
+    "id": (i for i in range(0, df_size)),
     "date": main.date,
     "lat": main.lat,
     "long": main.long,
@@ -22,11 +24,9 @@ df = pd.DataFrame({
     "richter": main.richter,
     "moment": main.mw,
     "surface": main.ms,
-    "body": main.mb,
-    "tier1_dist": 0,
-    "tier2_dist": 0,
-    "tier3_dist": 0
+    "body": main.mb
 })
+
 # Fill null values with 0's
 df = df.fillna(0)
 
@@ -44,31 +44,32 @@ points = np.array(
      ])
 
 point_coord = points[0]
-location_coord = df.iloc[0][["id", "lat", "long"]].to_numpy()
+location_coord = df.iloc[0][["lat", "long", "id"]].to_numpy()
 
 #####################
 
 
-def tier_list(x, y):
-
-    for j in depremler:
+def tier_list(df, points):
+    tiers = np.array([])
+    for j in range(0, df_size):
+        location_coord = df.iloc[j][["lat", "long", "id"]].to_numpy()
         tier_arr = [0, 0, 0]
-        for k in bizimkiler:
-            distance = find_distance(j, k)
-
+        for point_coord in points:
+            distance = find_distance(location_coord, point_coord)
             if distance <= 30:
                 tier_arr[0] += 1
-            elif distance <= 50:
+            elif distance <= 90:
                 tier_arr[1] += 1
-            elif distance <= 70:
+            elif distance <= 150:
                 tier_arr[2] += 1
-        # tier_arr to dataset
-        df.tier1_dist = tier_arr[0]
-        df.tier2_dist = tier_arr[1]
-        df.tier3_dist = tier_arr[2]
-    return tier_arr
+        tiers = np.append(tiers, tier_arr)
+    tiers = np.reshape(tiers, (df_size, 3))
+    df2 = pd.DataFrame(
+        tiers, columns=["tier1_dist", "tier2_dist", "tier3_dist"])
+    df3 = pd.concat([df, df2], axis=1, sort=False)
+    df3.to_csv('new_earthquake.csv', index=False)
 
 
 #####################
-print(find_distance(point_coord, location_coord))
-print(df)
+# print(find_distance(point_coord, location_coord))
+tier_list(df, points)
